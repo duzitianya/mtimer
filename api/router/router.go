@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/go-martini/martini"
-	"git.mobike.io/motimer/api/user"
+	"motimer/api/user"
 )
 
 func Router(r martini.Router) {
