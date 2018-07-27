@@ -11,7 +11,7 @@ import (
 //定义一个自己的中间件，这里将beego的context注入
 func myContext() martini.Handler {
 	return func(res http.ResponseWriter, req *http.Request, c martini.Context) {
-		ctx := context.Context{Request: req, ResponseWriter: res}
+		ctx := context.Context{Request: req, ResponseWriter: &context.Response{res,true,200}}
 		ctx.Input = context.NewInput()
 		ctx.Output = context.NewOutput()
 		c.Map(ctx)

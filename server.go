@@ -5,7 +5,7 @@ import (
 	"github.com/martini-contrib/render"
 	"log"
 	"os"
-	"git.mobike.io/motimer/api/router"
+	"motimer/api/router"
 )
 
 func main() {
