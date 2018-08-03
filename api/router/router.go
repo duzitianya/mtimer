@@ -80,10 +80,15 @@ func CoreRouterGroup(gp *gin.RouterGroup) {
 			log.Fatal(err)
 		}
 
+
+		person := &module.Person{}
+		err = person.GetPerson(user.Username, user.Password)
+
 		c.JSON(http.StatusOK, gin.H{
 			"username": user.Username,
-			"password": user.Password,
-			"age": user.Age,
+			"password": "****",
+			"first_name": person.FirstName,
+			"last_name": person.LastName,
 		})
 	})
 	gp.GET("/toBaidu", func(c *gin.Context) {
