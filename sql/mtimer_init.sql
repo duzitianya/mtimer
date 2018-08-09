@@ -13,5 +13,5 @@ CREATE TABLE mtimer_tasks (
 	`create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 	`update_time` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 	PRIMARY KEY (`id`),
-	INDEX `uniq_mtimer_group_biz` (`group_id`, `biz_id`)
+	UNIQUE KEY `uniq_mtimer_group_biz` (`group_id`,`biz_id`) USING BTREE
 ) ENGINE=`InnoDB` COMMENT='定时服务器调度任务表';

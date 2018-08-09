@@ -1,13 +1,37 @@
 package crons
 
-import "github.com/robfig/cron"
+import (
+	"github.com/robfig/cron"
+)
 
 type CronEntity struct {
-	cronExp string
+	CronExp string
+	Callback CronCallback
 }
 
-func (ce *CronEntity) start() {
+type CronCallback interface {
+	Call()
+}
+
+type CronDefaultCallback struct {
+}
+
+func (callback *CronDefaultCallback) Call() {
+	//TODO: implements logic
+
+}
+
+func (cronEntity *CronEntity) StartNewCron() bool{
+
+	if cronEntity.Callback == nil {
+		cronEntity.Callback = CronDefaultCallback{}
+	}
+
 	c := cron.New()
-	c.AddFunc(" * * * * * * ", func(){})
+	c.AddFunc(cronEntity.CronExp, func(){
+		cronEntity.Callback.Call()
+	})
 	c.Start()
+
+	return true
 }
