@@ -82,7 +82,7 @@ func (task *MtimerTask) TaskSuccess() (bool, error) {
 }
 
 
-func getTaskList(partition int) ([]MtimerTask, error) {
+func getTaskList(partition int) (map[int64]MtimerTask, error) {
 	db := mysql.GetDB()
 
 	rows, err := db.Query("SELECT " + table_fields_all + " FROM " + table_name + " WHERE ins_num=? AND status in (" + fmt.Sprintf("%d, %d", NewBee, Loaded) + ") order by excution_time desc limit 500", partition)
@@ -93,7 +93,7 @@ func getTaskList(partition int) ([]MtimerTask, error) {
 	defer rows.Close()
 
 	//lists := make([]MtimerTask, 500)
-	var lists []MtimerTask
+	var taskMap = make(map[int64]MtimerTask)
 
 	for rows.Next() {
 		task := MtimerTask{}
@@ -102,7 +102,7 @@ func getTaskList(partition int) ([]MtimerTask, error) {
 			log.Fatal(err)
 			continue
 		}
-		lists = append(lists, task)
+		taskMap[task.Id] = task
 	}
 	rows.Close()
 
@@ -110,7 +110,7 @@ func getTaskList(partition int) ([]MtimerTask, error) {
 		log.Fatal(err)
 	}
 
-	return lists, nil
+	return taskMap, nil
 }
 
 func updateTaskStatus(status int, id int64) (bool, error) {

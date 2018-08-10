@@ -2,36 +2,77 @@ package crons
 
 import (
 	"github.com/robfig/cron"
+	"mtimer/tasks"
+	"log"
 )
 
-type CronEntity struct {
-	CronExp string
-	Callback CronCallback
+type CronCallback interface {
+	Call(task tasks.MtimerTask)
 }
 
-type CronCallback interface {
-	Call()
+type CronEntity struct {
+	Task tasks.MtimerTask
+	Callback CronCallback
 }
 
 type CronDefaultCallback struct {
 }
 
-func (callback *CronDefaultCallback) Call() {
+func (callback CronDefaultCallback) Call(task tasks.MtimerTask) {
 	//TODO: implements logic
+	isSuccess, err := task.TaskSuccess()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if isSuccess {
+		delete(tasks.AllTasksMap, tasks.AllTasksMap[task.Id])
+	}
 
 }
 
-func (cronEntity *CronEntity) StartNewCron() bool{
+var cronChan chan int
+var CronService *cron.Cron
+
+func StartCronService() bool {
+	CronService = cron.New()
+	CronService.Start()
+
+	//获取所有需要加入到定时任务服务的MtimerTask
+	allTasksMap := tasks.AllTasksMap
+	for _, task := range allTasksMap {
+		//转换为CronEntity添加进执行列表中
+		newCronEntity := CronEntity{Task:task}
+		newCronEntity.AddNewCron()
+	}
+
+	return true
+}
+
+func StopCronService() bool {
+	//停止服务时，获取未执行完成
+
+
+	CronService.Stop()
+
+	return true
+}
+
+func (cronEntity *CronEntity) AddNewCron() bool{
 
 	if cronEntity.Callback == nil {
 		cronEntity.Callback = CronDefaultCallback{}
 	}
 
-	c := cron.New()
-	c.AddFunc(cronEntity.CronExp, func(){
-		cronEntity.Callback.Call()
+	err := CronService.AddFunc(cronEntity.Task.CronTime, func(){
+		cronEntity.Callback.Call(cronEntity.Task)
+
 	})
-	c.Start()
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
 
 	return true
 }
+
+

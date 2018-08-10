@@ -7,15 +7,12 @@ import (
 	"mtimer/tasks/crons"
 )
 
-var AllTasks []MtimerTask
-var insNum int
+var AllTasksMap map[int64]MtimerTask
+var InsNum int
 
 func init() {
-	//TODO: 获取该实例编号
-	insNum = 1
-
 	var err error
-	AllTasks, err = getTaskList(insNum)
+	AllTasksMap, err = getTaskList(InsNum)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,7 +39,7 @@ func NewTaskReceived(groupId, bizId int, groupName, bizName, ip, param string, e
 	task.CronTime = cron
 	task.ExcutionTime = excutionTime
 
-	task.InsNum = insNum
+	task.InsNum = InsNum
 
 	task.CreateTime = time.Now().UTC()
 
@@ -53,12 +50,10 @@ func NewTaskReceived(groupId, bizId int, groupName, bizName, ip, param string, e
 
 	//如果数据库创建成功，且执行时间小于一天，则放入内存中
 	if result > 0 && (excutionTime.Unix() - task.CreateTime.Unix())/3600 < 24 {
-		AllTasks = append(AllTasks, task)
+		AllTasksMap[result] = task
 		//TODO: 添加到cron执行
-		cronBean := crons.CronEntity{ CronExp:task.CronTime }
-		cronBean.StartNewCronWithoutCallBack()
-
-		return true
+		cronBean := crons.CronEntity{ Task:task }
+		return cronBean.AddNewCron()
 	}
 
 
