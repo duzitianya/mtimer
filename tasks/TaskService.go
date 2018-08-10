@@ -24,7 +24,6 @@ type CronDefaultCallback struct {
 }
 
 func (callback CronDefaultCallback) Call(task MtimerTask) {
-	//TODO: implements logic
 	isSuccess, err := task.TaskSuccess()
 	if err != nil {
 		log.Fatal(err)
@@ -35,40 +34,39 @@ func (callback CronDefaultCallback) Call(task MtimerTask) {
 
 }
 
-func init() {
+func StartCronService(sd <-chan int) {
+	CronService = cron.New()
+	CronService.Start()
+
 	var err error
 	AllTasksMap, err = getTaskList(InsNum)
 	if err != nil {
 		log.Fatal(err)
 	}
-}
+	if len(AllTasksMap) > 0 {
+		//获取所有需要加入到定时任务服务的MtimerTask
+		allTasksMap := AllTasksMap
+		for _, task := range allTasksMap {
+			//转换为CronEntity添加进执行列表中
+			newCronEntity := CronEntity{Task:task}
+			newCronEntity.addNewCron()
+		}
 
-func StartCronService() bool {
-	CronService = cron.New()
-	CronService.Start()
-
-	//获取所有需要加入到定时任务服务的MtimerTask
-	allTasksMap := AllTasksMap
-	for _, task := range allTasksMap {
-		//转换为CronEntity添加进执行列表中
-		newCronEntity := CronEntity{Task:task}
-		newCronEntity.AddNewCron()
 	}
 
-	return true
+	select{
+	case <-sd : stopCronService()
+	}
+
 }
 
-func StopCronService() bool {
+func stopCronService() {
 	//停止服务时，获取未执行完成
-
-
 	CronService.Stop()
-
-	return true
+	AllTasksMap = nil
 }
 
-func (cronEntity *CronEntity) AddNewCron() bool{
-
+func (cronEntity *CronEntity) addNewCron() bool{
 	if cronEntity.Callback == nil {
 		cronEntity.Callback = CronDefaultCallback{}
 	}
@@ -119,9 +117,8 @@ func NewTaskReceived(groupId, bizId int, groupName, bizName, ip, param string, e
 	//如果数据库创建成功，且执行时间小于一天，则放入内存中
 	if result > 0 && (excutionTime.Unix() - task.CreateTime.Unix())/3600 < 24 {
 		AllTasksMap[result] = task
-		//TODO: 添加到cron执行
 		cronBean := CronEntity{ Task:task }
-		return cronBean.AddNewCron()
+		return cronBean.addNewCron()
 	}
 
 

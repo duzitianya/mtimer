@@ -23,7 +23,12 @@ func main() {
 		}
 	}
 
+	var shutdownCronService chan int
+	go tasks.StartCronService(shutdownCronService)
 
+	defer func() {
+		shutdownCronService <- 1
+	}()
 	defer mysql.CloseDB()
 
 
@@ -33,23 +38,5 @@ func main() {
 	mr.GinRouter(router)
 
 	router.Run(":1238")
-
-	/*c := cron.New()
-	c.AddFunc("0 28 18 9 8 ?", func() {
-		fmt.Println("=================")
-	})
-	c.AddFunc("0 30 18 9 8 ?", func() {
-		fmt.Println("=================")
-	})
-	c.Start()
-
-	c.AddFunc("0 32 18 9 8 ?", func() {
-		fmt.Println("=================")
-	})
-
-	select {
-
-	}*/
-
 
 }
