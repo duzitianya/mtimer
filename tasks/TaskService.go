@@ -107,7 +107,7 @@ func NewTaskReceived(groupId, bizId int, groupName, bizName, ip, param string, e
 
 	task.InsNum = InsNum
 
-	task.CreateTime = time.Now().UTC()
+	task.CreateTime = time.Now()
 
 	result, err := task.CreateNewOneTask()
 	if err != nil {
